@@ -42,3 +42,55 @@ A continuación se muestra la estructura de las tablas del dataset:
 | Revenue | Ingresos totales generados por la venta, calculados como **Cantidad × Precio Unitario**. |
 | Profit | Ganancia neta obtenida en la transacción. |
 
+## Tareas (Task)
+
+En este proyecto, se ayudará al departamento comercial de Corwell Group a responder lo siguiente:
+
+1. **Ingreso y Margen Total por Cateogoría de Producto:** 
+¿Cuál es el ingreso total y la ganancia total generados por cada categoría de producto, y qué porcentaje de margen representa cada una?
+
+2. **Mejores Productos del Catálogo Por Margen:** ¿Cuáles son los 10 productos que generan mayor ingreso para la empresa?
+
+3. **Ventas Totales por Región:** ¿Cómo se comparan las ventas totales, la ganancia y el número de órdenes entre las 4 regiones donde opera Corwell Group?
+
+4. **Rentabilidad de los productos:** ¿Cómo se puede clasificar a cada producto según su nivel de rentabilidad (alta, media o baja) para priorizar decisiones comerciales?
+
+5. **Evolución Mensual de Ingresos:** ¿Cómo ha evolucionado el ingreso mes a mes durante 2023 y 2024? ¿Existen patrones de estacionalidad?
+
+6. **Distribución de Ingresos por Estado:** ¿Qué estados concentran el 80% del ingreso total de la empresa? ¿Vale la pena distribuir el esfuerzo comercial por igual entre todos los estados?
+
+7. **Frecuencia de compra por cliente:** ¿Qué proporción de clientes ha realizado más de una compra, frente a los que solo compraron una vez?
+
+8. **Tasa de crecimiento mensual por categoría:** ¿Cuál es la tasa de crecimiento mes a mes del ingreso por categoría de producto, y qué categorías muestran una tendencia sostenida de crecimiento o caída?
+
+9. **Ranking de productos por categoría:** ¿Cuáles son los productos más y menos rentables dentro de cada categoría, ordenados por ranking interno?
+
+10. **Detección de caída de ventas:** ¿Existen productos con una caída sostenida de ventas durante 2 o más meses consecutivos que ameriten una alerta temprana?
+
+11. **Segmentación de clientes por valor de compra:** ¿Cómo se segmentan los clientes según su valor de compra acumulado (en cuartiles), y qué porcentaje del ingreso total aporta el cuartil superior?
+
+12. **Contribución regional al margen de ganancia:** ¿Cuál es la contribución acumulada de cada región al margen de ganancia total de la empresa?
+
+13. **Matriz de desempeño Categoría Región:**¿Qué combinaciones de categoría y región presentan el mejor y el peor desempeño conjunto de ingreso y margen?
+
+14. **Detección de outliersen Precio Unitario:**¿Existen productos con un precio unitario anormalmente alto o bajo respecto al promedio de su subcategoría, que ameriten revisión de pricing?
+
+## Limpieza de datos
+Antes de realizar el análisis, es fundamental asegurar que los datos estén limpios y completos. Se deben verificar la integridad de los datos, la consistencia de las fórmulas y la calidad de los registros. Los pasos realizados en esta etapa fueron:
+
+### Verificación de valores nulos o faltantes:
+
+Se verificó la existencia de valores faltantes en los campos clave dentro de la tabla `sales`: 
+- `Order_ID`
+- `Order_Date`
+- `Customer_Name`
+- `City`
+- `Quantity`
+- `Unit_Price`
+- `Revenue`
+- `Profit`
+
+#### Verificación de valores nulos en tabla sales
+
+#### 2. Verificación de valores duplicados:
+#### 3. Verificación de inconsistencias:
