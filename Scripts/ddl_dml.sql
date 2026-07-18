@@ -42,22 +42,22 @@ WITH (
 SELECT COUNT(1) AS cnt_de_registros
 FROM sales
 
----------------------------------
--- NORMALIZACIOPN DE LA DATA
----------------------------------
+-- ==============================
+-- 1. NORMALIZACION DE LA DATA
+-- ==============================
 
-DROP TABLE IF EXISTS Fact_Sales;
-DROP TABLE IF EXISTS Dim_Customer;
-DROP TABLE IF EXISTS Dim_Product;
-DROP TABLE IF EXISTS Dim_Geography;
-GO
+-- ===============================================
+-- a) Tabla Dimensional de Clientes (Dim_Customer)
+-- ===============================================
 
---- Tabla Dimensional de Clientes (Dim_Customer)
+-- Creación de tabla Dim_Customer
 
 CREATE TABLE Dim_Customer (
 	Customer_ID		INT IDENTITY(101,1) NOT NULL,
 	Customer_Name	VARCHAR(100) NOT NULL,
 	CONSTRAINT PK_Dim_Customer PRIMARY KEY (Customer_ID) );
+
+-- Inserción de Data en Dim_Customer
 
 INSERT INTO Dim_Customer (Customer_Name)
 	SELECT 
@@ -67,8 +67,11 @@ INSERT INTO Dim_Customer (Customer_Name)
 
 select * from Dim_Customer;
 
---- Tabla Dimensional de Productos (Dim_Productos)
+-- ===============================================
+-- b) Tabla Dimensional de Productos (Dim_Product)
+-- ===============================================
 
+-- Creación de tabla Dim_Product
 
 CREATE TABLE Dim_Product (
 	Product_ID		INT IDENTITY(1,1) NOT NULL,
@@ -76,6 +79,8 @@ CREATE TABLE Dim_Product (
 	Sub_Category	VARCHAR(50),
 	Category		VARCHAR(50),
 	CONSTRAINT PK_Dim_Product PRIMARY KEY (Product_ID) ) ;
+
+-- Inserción de Data en Dim_Product
 
 INSERT INTO Dim_Product (Product_Name, Sub_Category, Category)
 	SELECT 
@@ -85,7 +90,11 @@ INSERT INTO Dim_Product (Product_Name, Sub_Category, Category)
 	FROM sales
 	ORDER BY Category ASC, Sub_Category ASC, Product_Name ASC;
 
---- Tabla Dimensional de Geography (Dim_Geography)
+-- ===============================================
+-- c) Tabla Dimensional de Geography (Dim_Geography)
+-- ===============================================
+
+-- Creación de tabla Dim_Geography
 
 CREATE TABLE Dim_Geography (
 	Geo_ID			INT IDENTITY(1,1) NOT NULL,
@@ -94,6 +103,8 @@ CREATE TABLE Dim_Geography (
 	Region			VARCHAR(20),
 	Country			VARCHAR(50),
 	CONSTRAINT PK_Dim_Geography PRIMARY KEY (Geo_ID) ) ;
+
+-- Inserción de Data en Dim_Geography
 
 INSERT INTO Dim_Geography (City, State, Region, Country)
 	SELECT
@@ -104,7 +115,11 @@ INSERT INTO Dim_Geography (City, State, Region, Country)
 	FROM sales 
 	ORDER BY Region ASC, State ASC, City ASC
 
---- Tabla De Hechos de Ventas (Fact_Sales)
+-- ===============================================
+-- d) Tabla de Hechos de Ventas (Fact_Sales)
+-- ===============================================
+
+-- Creación Tabla De Hechos de Ventas (Fact_Sales)
 
 CREATE TABLE Fact_Sales (
 	Order_ID		INT NOT NULL,
@@ -127,6 +142,8 @@ CREATE TABLE Fact_Sales (
 	CONSTRAINT CHK_Unit_Price CHECK(Unit_Price >= 0),
 	CONSTRAINT CHK_Revenue CHECK(Revenue >= 0)
 );
+
+-- Inserción de Data en Fact_Sales
 
 INSERT INTO Fact_Sales(Order_ID, Customer_ID, Product_ID, Geo_ID, Order_Date, Quantity, Unit_Price, Revenue, Profit)
 SELECT

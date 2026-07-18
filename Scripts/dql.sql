@@ -1,3 +1,7 @@
+SELECT TOP 7 *
+FROM sales
+
+
 SELECT COUNT(1) from Fact_Sales
 
 SELECT COUNT(*) FROM Fact_Sales f
@@ -12,13 +16,13 @@ SELECT COUNT(*) FROM Fact_Sales f
 LEFT JOIN Dim_Geography g ON f.Geo_ID = g.Geo_ID
 WHERE g.Geo_ID IS NULL;
 
-------------------------------------------------------------------
--- Limpieza de Datos ---------------------------------------------
-------------------------------------------------------------------
+-- =============================
+-- 2. Limpieza de Datos
+-- =============================
 
-------------------------------
+-- =============================
 -- Valores Nulos o Faltantes
-------------------------------
+-- =============================
 
 -- Verificacion de valores faltantes en la tabla Dim_Customer
 
@@ -26,7 +30,7 @@ SELECT COUNT(1) as ValoresFaltantesCustomer
 FROM Dim_Customer
 WHERE Customer_Name is NULL;
 
--- Verificación de valores faltantes en la tabla Dim_Product
+-- Verificaciï¿½n de valores faltantes en la tabla Dim_Product
 
 SELECT COUNT(1) as ValoresFaltantesProduct
 FROM Dim_Product
@@ -49,28 +53,28 @@ SELECT COUNT(1) as ValoresFaltantesFact
 FROM Fact_Sales
 WHERE  Order_ID IS NULL
 	OR Order_Date IS NULL
-    OR Customer_Name IS NULL
-    OR Product_Name IS NULL
-    OR City IS NULL
     OR Quantity IS NULL
     OR Unit_Price IS NULL
     OR Revenue IS NULL
     OR Profit IS NULL;
 
-------------------------
+-- =============================
 -- Valores Duplicados
-------------------------
+-- =============================
+
 -- Verificacion de valores duplicados en la tabla Fact_Sales
 
-SELECT Order_ID, COUNT(1) as ValoresDuplicados
-FROM Fact_Sales
-GROUP BY Order_ID
-HAVING COUNT(1) > 1;
+SELECT COUNT(*) AS ValoresDuplicados
+FROM (
+    SELECT Order_ID
+    FROM Fact_Sales
+    GROUP BY Order_ID
+    HAVING COUNT(1) > 1
+) AS Duplicados;
 
-
--------------------------------------
+-- ================================
 -- Verificacion de Inconsistencias
--------------------------------------
+-- ===============================
 
 -- Verificacion de Formulas en Campos Calculados de Revenue
 
@@ -78,23 +82,24 @@ SELECT COUNT(1) AS CalculoIncorrecto
 FROM sales
 WHERE ROUND(Unit_Price * Quantity, 2) <> Revenue;
 
--- Verificacion de inconsistencia (se debe cumplir Profit < Revenue)
+-- Verificacion de inconsistencia (se debe verificar que Profit no exceda a Revenue)
 
 SELECT COUNT(1) AS Inconsistencia_Profit_Revenue
 FROM sales
 WHERE Profit > Revenue;
 
 
---------------------------------------------------------------------
--- PREGUNTAS DE NEGOCIO ---------------------------------------------
---------------------------------------------------------------------
+-- ==========================================
+-- Anï¿½lisis Exploratorio de Datos e Insights
+-- =========================================
 
---- Pregunta 1: Ingreso y Margen Total por Categoria de Producto
--- ¿Cual es el ingreso total y la ganancia total generados por cada categoría de producto, y que porcentaje de margen representa cada una?
+--- 1. Ingreso y Margen Total por Categoria de Producto
+-- ï¿½Cual es el ingreso total y la ganancia total generados por cada categorï¿½a de producto, y que porcentaje de margen representa cada una?
+
 SELECT 
 	p.Category,
-	FORMAT(SUM(f.Revenue), 'N2') AS  IngresoTotal,  -- Formato de Separación
-	FORMAT(SUM(f.Profit), 'N2') AS MargenTotal,		-- Formato de Separación
+	FORMAT(SUM(f.Revenue), 'N2') AS  IngresoTotal,  -- Formato de Separaciï¿½n
+	FORMAT(SUM(f.Profit), 'N2') AS MargenTotal,		-- Formato de Separaciï¿½n
 	CAST(	
 		(SUM(f.Profit) * 100.0)/ SUM(f.Revenue) AS DECIMAL(10,2) 
 		) AS [PctMargen (%)]
@@ -105,7 +110,7 @@ ORDER BY
 	[PctMargen (%)] DESC;
 
 --- Pregunta 2: Mejores Productos del Catalogo por Margen
--- ¿Cuales son los productos que generan mayor margen para la empresa?
+-- ï¿½Cuales son los productos que generan mayor margen para la empresa?
 
 SELECT TOP 10
 	p.Product_Name,
@@ -117,11 +122,11 @@ SELECT TOP 10
 FROM Fact_Sales AS f
 JOIN Dim_Product as p ON p.Product_ID = f.Product_ID
 GROUP BY p.Product_Name
-ORDER BY SUM(f.Revenue) DESC --- Ordenamos por 'SUM(f.Revenue)' para incluir los valores numéricos en el ordenamiento
-							 --- y no los textuales puesto que se utilizó 'FORMAT'
+ORDER BY SUM(f.Revenue) DESC --- Ordenamos por 'SUM(f.Revenue)' para incluir los valores numï¿½ricos en el ordenamiento
+							 --- y no los textuales puesto que se utilizï¿½ 'FORMAT'
 
 --- Pregunta 3: Ventas Totales Por Region
--- ¿Como se comparan las ventas totales, la ganancia y la cantidad de de órdenes entre las 4 regiones donde opera el negocio?
+-- ï¿½Como se comparan las ventas totales, la ganancia y la cantidad de de ï¿½rdenes entre las 4 regiones donde opera el negocio?
 
 SELECT 
 	g.Region,
@@ -137,7 +142,7 @@ GROUP BY g.Region
 ORDER BY SUM(f.Revenue) DESC
 
 -- Pregunta 4: Rentabilidad de los productos
--- ¿Como se puede clasificar a cada producto según su nivel de rentabilidad (alta, media o baja) para priorizar decisiones comerciales?
+-- ï¿½Como se puede clasificar a cada producto segï¿½n su nivel de rentabilidad (alta, media o baja) para priorizar decisiones comerciales?
 
 SELECT 
 	p.Product_Name,
@@ -156,8 +161,8 @@ INNER JOIN Dim_Product AS p ON p.Product_ID = f.Product_ID
 GROUP BY p.Product_Name
 ORDER BY [PctMargen (%)] DESC, SUM(f.Profit) DESC, SUM(f.Revenue) DESC
 
--- Pregunta 5: Evolución Mensual de Ingresos
--- ¿Como ha evolucionado el ingreso mes a mes durante 2023 y 2024? ¿Existe algun patron de estacionalidad?
+-- Pregunta 5: Evoluciï¿½n Mensual de Ingresos
+-- ï¿½Como ha evolucionado el ingreso mes a mes durante 2023 y 2024? ï¿½Existe algun patron de estacionalidad?
 
 SELECT 
     YEAR(f.Order_Date) AS Anio,
@@ -170,9 +175,9 @@ FROM Fact_Sales AS f
 GROUP BY YEAR(f.Order_Date), MONTH(f.Order_Date), DATENAME(MONTH, f.Order_Date)
 ORDER BY Anio ASC, NumMes ASC;
 
--- Pregunta 6: Estados que concentran el 80% del ingreso total (análisis Pareto)
+-- Pregunta 6: Estados que concentran el 80% del ingreso total (anï¿½lisis Pareto)
 
--- ¿Qué estados concentran el 80% del ingreso total de la empresa? ¿Vale la pena distribuir el esfuerzo comercial por igual entre los 47 estados?
+-- ï¿½Quï¿½ estados concentran el 80% del ingreso total de la empresa? ï¿½Vale la pena distribuir el esfuerzo comercial por igual entre los 47 estados?
 
 
 WITH IngresoPorEstado AS (
@@ -203,12 +208,12 @@ ORDER BY IngresoEstado DESC;
 
 
 /* 
-¿Qué proporción de clientes ha realizado más de una compra, frente a los que solo compraron una vez?
+ï¿½Quï¿½ proporciï¿½n de clientes ha realizado mï¿½s de una compra, frente a los que solo compraron una vez?
 
-¿Cuál es la tasa de crecimiento mes a mes del ingreso por categoría de producto, y qué categorías muestran una tendencia sostenida de crecimiento o caída?
-¿Cuáles son los productos más y menos rentables dentro de cada categoría, ordenados por ranking interno?
-¿Existen productos con una caída sostenida de ventas durante 2 o más meses consecutivos que ameriten una alerta temprana?
-¿Cómo se segmentan los clientes según su valor de compra acumulado (en cuartiles), y qué porcentaje del ingreso total aporta el cuartil superior?
-¿Cuál es la contribución acumulada de cada región al margen de ganancia total de la empresa?
-¿Qué combinaciones de categoría y región presentan el mejor y el peor desempeño conjunto de ingreso y margen?
-¿Existen productos con un precio unitario anormalmente alto o bajo respecto al promedio de su subcategoría, que ameriten revisión de pricing? */
+ï¿½Cuï¿½l es la tasa de crecimiento mes a mes del ingreso por categorï¿½a de producto, y quï¿½ categorï¿½as muestran una tendencia sostenida de crecimiento o caï¿½da?
+ï¿½Cuï¿½les son los productos mï¿½s y menos rentables dentro de cada categorï¿½a, ordenados por ranking interno?
+ï¿½Existen productos con una caï¿½da sostenida de ventas durante 2 o mï¿½s meses consecutivos que ameriten una alerta temprana?
+ï¿½Cï¿½mo se segmentan los clientes segï¿½n su valor de compra acumulado (en cuartiles), y quï¿½ porcentaje del ingreso total aporta el cuartil superior?
+ï¿½Cuï¿½l es la contribuciï¿½n acumulada de cada regiï¿½n al margen de ganancia total de la empresa?
+ï¿½Quï¿½ combinaciones de categorï¿½a y regiï¿½n presentan el mejor y el peor desempeï¿½o conjunto de ingreso y margen?
+ï¿½Existen productos con un precio unitario anormalmente alto o bajo respecto al promedio de su subcategorï¿½a, que ameriten revisiï¿½n de pricing? */
