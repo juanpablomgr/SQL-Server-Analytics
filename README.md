@@ -238,6 +238,8 @@ Se verificó la existencia de valores faltantes en los campos clave dentro de la
 - `Revenue`
 - `Profit`
 
+No se encontraron valores nulos o faltantes.
+
 
 ```sql
 -- =============================
@@ -284,6 +286,7 @@ WHERE  Order_ID IS NULL
 ![Valores_Nulos](./Picture/valores_nulos.png)
 
 ### 2. Verificación de valores duplicados:
+A continuación, se procede a verificar la existencia de valores duplicados en los campos clave. No se encontraron duplicados.
 
 ```sql
 -- =============================
@@ -300,6 +303,7 @@ HAVING COUNT(1) > 1;
 ![Valores_Nulos](./Picture/valores_duplicados.png)
 
 ### 3. Verificación de inconsistencias:
+A continuación, se procede a verificar incosistencias en los campos clave. No se encontraron incosistencias
 
 ```sql
 -- ================================
@@ -325,7 +329,13 @@ WHERE Profit > Revenue;
 
 ### 1.  Ingreso y Margen Total por Categoria de Producto
 
-¿Cual es el ingreso total y la ganancia total generados por cada categoría de producto, y que porcentaje de margen representa cada una?
+#### ¿Cual es el ingreso total y la ganancia total generados por cada categoría de producto, y que porcentaje de margen representa cada una?
+
+Se determinó el Ingreso y Margen Total utilizando las funciones SUM, GROUP BY, y CAST para transformar los valores a formatos decimales. 
+
+Además se aplicó la función FORMAT para modificar la visualización de los valores en miles.
+
+Para poder relacionar los datos de la tabla Fact_Sales con los de la tabla Dim_Product, se realizó una inner join entre ambas tablas utilizando el campo Product_ID.
 
 ```sql
 SELECT 
@@ -344,11 +354,19 @@ ORDER BY
 
 ![pregunta1](./Picture/pregunta1.png)
 
-Insight: XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
+**Insight:** 
+
+- La categoría _Accessories_ tuvo el mayor porcentaje de margen con 34.0 % seguido de cerca por _Clothing & Apparel_ con 32.53 %. Sin embargo, ambas categorías representan el menor ingreso de todas, con $10.1 Millones y $27.1 Millones respectivamente.
+- Por otro lado, la categoría _Electronics_ se identifico como la que posee el menor porcentaje de margen con 14.03% y a su vez es la que tiene mayores ingresos con $57.5 Millones.
+- Se sugiere una revisión de la estructura de Costos de la categoría _Electronics_ al ser la categoría que más factura pero que menos margen brinda a la empresa.
+- El negocio podría enfocarse en potenciar el margen de la categoría _Electronics_ y además modificar la estrategia comercial para las categorías _Accessories_ y _Clothing & Apparel_ con el objetivo de aumentar la rentabilidad general del negocio.
+
 
 ### 2.  Mejores Productos del Catálogo por Margen
 
-¿Cuales son los productos que generan mayor margen para la empresa?
+Se encontró los 10 productos con mayores ingresos de la empresa utilizando las funciones TOP, SUM, GROUP BY y ORDER BY.
+
+#### ¿Cuales son los productos que generan mayor margen para la empresa?
 
 ```sql
 SELECT TOP 10
@@ -366,11 +384,18 @@ ORDER BY SUM(f.Revenue) DESC
 
 ![pregunta2](./Picture/pregunta2.png)
 
-Insight: XXXXXXXXXXX
+Insight: 
+
+-  El producto _Tempur-Pedic Mattress_ es el líder en ventas y en margen de ganancia con $9.06 Millones y 23.55% respectivamente. Seguido de Instant Pot con $8.90 Millones y 18.98% de Margen. 
+- Se identificó que 5 de los 10 productos más vendidos pertenecen a la categoría _Electronics_, todos estos con un margen que ronda entre los 13.9% y 14.1% que justamente representa un valor bajo frente a otras categorías
+- La empresa podría priorizar el crecimiento de sus productos líderes como _Tempur-Pedic Mattress_ y  _Storage Rack_ que combinan Ingresos y Margenes Altos superiores al 23%, mientras se analiza la estrategia de precios y costos de los productos de la categoría _Electronics_ ya que genera menor ganancia relativa por venta.
+
 
 ### 3. Ventas Totales Por Región
 
-¿Como se comparan las ventas totales, la ganancia y la cantidad de de órdenes entre las 4 regiones donde opera el negocio?
+#### ¿Como se comparan las ventas totales, la ganancia y la cantidad de de órdenes entre las 4 regiones donde opera el negocio?
+
+Se determinó el Ingreso, Margen, Porcentaje de Margen y cantidad de Ordenes por Región utilizando las funciones SUM, COUNT, GROUP BY y ORDER BY para comparar las relaciones entre las distintas regiones donde opera el negocio.
 
 ```sql
 SELECT 
@@ -388,11 +413,22 @@ ORDER BY SUM(f.Revenue) DESC
 ```
 ![pregunta3](./Picture/pregunta3.png)
 
-Insight: XXXXXXXXXXX
+**Insight:** 
+
+- La región Este se posiciona como la principal fuente de ingresos com $44.98M y 57034 órdenes, superando casi por el doble a la región Oeste que posee $25.10M y 37935 órdenes. Asi mismo, la región Este posee el peor margen de las 4 regiones con 20.50% y South generó el menor ingreso ($23.58M) pero alcanzó el mejor margen porcentual (23.58%).
+- Se sugiere la realización de un estudio de rentabiliad en la región Este para identificar si se debe a un mercado con mayor presencia de categorías de bajo margen como Electronics.
+- Si South tiene el mayor margen con menor operación de ventas, se debería evaluar el enfoque comercial utilizado para ver si es viable aplicarlo a la región Este sin sacrificar su volumen de ventas.
+
 
 ### 4. Rentabilidad de los productos
 
-¿Como se puede clasificar a cada producto según su nivel de rentabilidad (alta, media o baja) para priorizar decisiones comerciales?
+#### ¿Como se puede clasificar a cada producto según su nivel de rentabilidad (alta, media o baja) para priorizar decisiones comerciales?
+
+Se encontró la rentabilidad de los productos mediante una clasificación de margen alto, medio y bajo. Se utilizaron las funciones SUM, GROUP BY, ORDER BY y CASE WHEN.
+
+- El margen alto corresponde a un porcentaje mayor o igual a 33%.
+- El margen medio corresponde a un porcentaje mayor o igual a 17% y menor a 33%.
+- El margen bajo corresponde a un porcentaje menor a 17%.
 
 ```sql
 SELECT 
@@ -414,14 +450,21 @@ ORDER BY [PctMargen (%)] DESC, SUM(f.Profit) DESC, SUM(f.Revenue) DESC
 ```
 
 ![pregunta4_1](./Picture/pregunta4_1.png)
+
 ![pregunta4_2](./Picture/pregunta4_2.png)
 
 
-Insight: XXXXXXXXXXX
+**Insight:**
+- Los productos clasificados con rentabilidad alta son en su gran mayoría del segmento de Accesories con márgenes entre 33.63% a a 34.37%. Mientras que los del segmento Medio son principalmente de Clothin & Apparel con márgenes cercanos al 32.00% y Home & Furniture con márgenes entre 18% y 24%.
+- En el segmento de margen bajo se encuentra la categoría Electronics con un márgen aproximado de 13.9%.
+- La empresa podría tratar a Clothin & Apparel con una prioridad comercial similar a la de Accesories pues poseen margenes bastante cercanos.
+- Tratar a los productos cercanos a posicionarse en el segmento de margen bajo como Instant Pot y Kithen Aid Mixer priorizando su volumen de venta para evitar la caída en la clasificación.
 
 ### 5. Evolución Mensual de Ingresos
 
 ¿Como ha evolucionado el ingreso mes a mes durante 2023 y 2024? ¿Existe algun patron de estacionalidad?
+
+Se obtuvo la evolucion mes a mes de los Ingresos y el Margen a través de la funciones YEAR, MONTH, DATENAME para desagregar las fechas y SUM, COUNT y GROUP BY para generar las agrupaciones numéricas.
 
 ```sql
 SELECT 
@@ -436,5 +479,14 @@ GROUP BY YEAR(f.Order_Date), MONTH(f.Order_Date), DATENAME(MONTH, f.Order_Date)
 ORDER BY Anio ASC, NumMes ASC;
 ```
 
-![pregunta5_1](./Picture/pregunta5_1.png)
-![pregunta5_2](./Picture/pregunta5_2.png)
+![pregunta5_final](./Picture/pregunta5_final.png)
+ 
+ **Insight:**
+
+ - En 2023 los ingresos se mantuvieron estables durante los primeros 9 meses, alcanzando un punto más alto en Noviembre con $10.48M y cerrando el año con $9.36M.
+ - En 2024 se ve un incremento generalizado en los ingresos, siendo Octubre ($14.09M) y Noviembre ($15.71M) los meses de mayores ventas. Sin embargo, diciembre registro una caída considerable con $10.53M.
+ - Se pudo determinar por tanto una estacionalidad marcada en el último trimestre del año ya que se concentra la mayor cantidad de ventas de todo el año.
+ - Se pudo identificar al mes de Febrero como el mes más débil del año en cuanto a Ingresos, Margen y Ordenes.
+ - Al realizar una comparación mes a mes entre 2023 y 2024, los crecimientos son mínimos o nulos y hasta en algunos casos (enero, julio, diciembre) se registraron caídas leves.
+ - La empresa debería concentrar su presupuesto de inventario y logística en el cuarto trimestre del año (Oct-Nov-Dic), que representa aproximadamente el 35-40% del ingreso anual.
+ - También se debería construir campañas de reactivación comercial para febrero, puesto que es el punto más frágil de nuestra operación comercial anual y tiene un gran margen de mejora.
