@@ -105,7 +105,7 @@ ORDER BY
 	[PctMargen (%)] DESC;
 
 --- Pregunta 2: Mejores Productos del Catalogo por Margen
--- ¿Cuales son los productos que generan mayor ingreso para la empresa?
+-- ¿Cuales son los productos que generan mayor margen para la empresa?
 
 SELECT TOP 10
 	p.Product_Name,
