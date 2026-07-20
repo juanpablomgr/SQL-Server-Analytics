@@ -77,17 +77,7 @@ En este proyecto, se ayudará al departamento comercial de Corwell Group a respo
 
 8. **Tasa de crecimiento mensual por categoría:** ¿Cuál es la tasa de crecimiento mes a mes del ingreso por categoría de producto, y qué categorías muestran una tendencia sostenida de crecimiento o caída?
 
-9. **Ranking de productos por categoría:** ¿Cuáles son los productos más y menos rentables dentro de cada categoría, ordenados por ranking interno?
-
-10. **Detección de caída de ventas:** ¿Existen productos con una caída sostenida de ventas durante 2 o más meses consecutivos que ameriten una alerta temprana?
-
-11. **Segmentación de clientes por valor de compra:** ¿Cómo se segmentan los clientes según su valor de compra acumulado (en cuartiles), y qué porcentaje del ingreso total aporta el cuartil superior?
-
-12. **Contribución regional al margen de ganancia:** ¿Cuál es la contribución acumulada de cada región al margen de ganancia total de la empresa?
-
-13. **Matriz de desempeño Categoría Región:**¿Qué combinaciones de categoría y región presentan el mejor y el peor desempeño conjunto de ingreso y margen?
-
-14. **Detección de outliersen Precio Unitario:**¿Existen productos con un precio unitario anormalmente alto o bajo respecto al promedio de su subcategoría, que ameriten revisión de pricing?
+9. **Matriz de desempeño Categoría Región:**¿Qué combinaciones de categoría y región presentan el mejor y el peor desempeño conjunto de ingreso y margen?
 
 ## Arquitectura y Modelado de Datos
 
@@ -278,9 +268,6 @@ SELECT COUNT(1) as ValoresFaltantesFact
 FROM Fact_Sales
 WHERE  Order_ID IS NULL
 	OR Order_Date IS NULL
-    OR Customer_Name IS NULL
-    OR Product_Name IS NULL
-    OR City IS NULL
     OR Quantity IS NULL
     OR Unit_Price IS NULL
     OR Revenue IS NULL
@@ -685,3 +672,11 @@ GROUP BY p.Category, g.Region
 - Se pudo evidenciar que el margen está determinado por la categoría y no por la geografía. Las 16 combinaciones se agrupan en 4 bloques perfectamente definidos por categoría (Accessories 33.9%-34.2%, Clothing & Apparel 32.5%-32.6%, Home & Furniture 23.4%-23.7%, Electronics 13.9%-14.1%)
 - En cuanto a la región que posee el menor margen de todas la cual es East, se evidencia que no se debe a que vende un mix de producto diferente a las demás regiones sino que tiene simplemente una mayor venta de Electronics en general con $22.67M.
 - La empresa debería impulsar sus esfuerzos comerciales en categorías de mayor margen como Accessories y Clothing & Apparel dentro de la región East, para que la participación relativa del del total de ventas de la región East suba.
+
+## Conclusiones del Proyecto
+- Este análisis proporcionó información importante sobre las áreas donde Corwell Group puede mejorar su rentabilidad y estrategia comercial.
+- Uno de los descubrimientos principales fue que el margen de ganancia está determinado por la categoría de producto y no por la geografía, con Electronics como la categoría de mayor volumen pero menor rentabilidad.
+- Se detectaron niveles de concentración de ingreso distribuidos de forma prácticamente uniforme entre los 47 estados, descartando la geografía como criterio de priorización comercial.
+- Para abordar estos hallazgos, la empresa debe tomar la iniciativa y enfocarse en revisar la estructura de costos de Electronics. 
+- Es fundamental fortalecer las estrategias de retención de clientes, dado que la mayoría de compradores realizan compras únicas. 
+- Resulta vital aprovechar la estacionalidad del último trimestre para optimizar inventario y presupuesto comercial.
