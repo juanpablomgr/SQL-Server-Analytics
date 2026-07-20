@@ -12,7 +12,7 @@ SELECT COUNT(1) as ValoresFaltantesCustomer
 FROM Dim_Customer
 WHERE Customer_Name is NULL;
 
--- Verificaci�n de valores faltantes en la tabla Dim_Product
+-- Verificacion de valores faltantes en la tabla Dim_Product
 
 SELECT COUNT(1) as ValoresFaltantesProduct
 FROM Dim_Product
@@ -72,7 +72,7 @@ WHERE Profit > Revenue;
 
 
 -- ==========================================
--- An�lisis Exploratorio de Datos e Insights
+-- Analisis Exploratorio de Datos e Insights
 -- =========================================
 
 --- 1. Ingreso y Margen Total por Categoria de Producto

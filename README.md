@@ -1,5 +1,8 @@
 # Proyecto SQL-Server-Commercial-Analytics
 Proyecto Integral de SQL Server para Analitica de Negocios
+
+![banner](./Picture/banner_vertical.png)
+
 ## Resumen (overview)
 ### Sobre el negocio
 Corwell Group es una empresa de distribución y venta retail de multicategoría con operaciones y presencia en Estados Unidos.
