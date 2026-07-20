@@ -415,8 +415,8 @@ ORDER BY SUM(f.Revenue) DESC
 
 **Insight:** 
 
-- La región Este se posiciona como la principal fuente de ingresos com $44.98M y 57034 órdenes, superando casi por el doble a la región Oeste que posee $25.10M y 37935 órdenes. Asi mismo, la región Este posee el peor margen de las 4 regiones con 20.50% y South generó el menor ingreso ($23.58M) pero alcanzó el mejor margen porcentual (23.58%).
-- Se sugiere la realización de un estudio de rentabiliad en la región Este para identificar si se debe a un mercado con mayor presencia de categorías de bajo margen como Electronics.
+- La región Este se posiciona como la principal fuente de ingresos com $44.98M y 57034 órdenes, superando casi por el doble a la región Oeste que posee $25.10M y 37935 órdenes. Asi mismo, la región Este posee el peor margen de las 4 regiones con 20.50% y South generó el menor ingreso ($25.102M) pero alcanzó el mejor margen porcentual (23.58%).
+- Se sugiere la realización de un estudio de rentabiliad en la región Este para identificar si se debe a un mercado con mayor presencia de categorías de bajo margen tal como es  Electronics.
 - Si South tiene el mayor margen con menor operación de ventas, se debería evaluar el enfoque comercial utilizado para ver si es viable aplicarlo a la región Este sin sacrificar su volumen de ventas.
 
 
@@ -458,35 +458,227 @@ ORDER BY [PctMargen (%)] DESC, SUM(f.Profit) DESC, SUM(f.Revenue) DESC
 - Los productos clasificados con rentabilidad alta son en su gran mayoría del segmento de Accesories con márgenes entre 33.63% a a 34.37%. Mientras que los del segmento Medio son principalmente de Clothin & Apparel con márgenes cercanos al 32.00% y Home & Furniture con márgenes entre 18% y 24%.
 - En el segmento de margen bajo se encuentra la categoría Electronics con un márgen aproximado de 13.9%.
 - La empresa podría tratar a Clothin & Apparel con una prioridad comercial similar a la de Accesories pues poseen margenes bastante cercanos.
-- Tratar a los productos cercanos a posicionarse en el segmento de margen bajo como Instant Pot y Kithen Aid Mixer priorizando su volumen de venta para evitar la caída en la clasificación.
+- Tratar a los productos cercanos a posicionarse en el segmento de margen bajo como: Instant Pot y Kitchen Aid Mixer priorizando su volumen de venta para evitar la caída en la clasificación.
 
 ### 5. Evolución Mensual de Ingresos
 
-¿Como ha evolucionado el ingreso mes a mes durante 2023 y 2024? ¿Existe algun patron de estacionalidad?
+#### ¿Como ha evolucionado el ingreso mes a mes durante 2023 y 2024? ¿Existe algun patron de estacionalidad?
 
-Se obtuvo la evolucion mes a mes de los Ingresos y el Margen a través de la funciones YEAR, MONTH, DATENAME para desagregar las fechas y SUM, COUNT y GROUP BY para generar las agrupaciones numéricas.
+Se obtuvo la evolucion mes a mes de los Ingresos y el Margen utilizando un CTE llamado `Ventas Mensuales` a través de la funciones YEAR, MONTH, DATENAME para desagregar las fechas y SUM, COUNT y GROUP BY para generar las agrupaciones numéricas.
+
+Sobre ese resultado se aplicó la window function LAG() para calcular el crecimiento de ingreso del mes anterior y asímismo se calculó el porcentaje de crecimiento mes a mes.
 
 ```sql
+WITH VentasMensuales as(
+	SELECT 
+		YEAR(f.Order_Date) AS Anio,
+		MONTH(f.Order_Date) AS NumMes,
+		DATENAME(MONTH, f.Order_Date) AS Mes,
+		SUM(f.Revenue) AS IngresoTotal,
+		SUM(f.Profit) AS MargenTotal,
+		COUNT(DISTINCT Order_ID) as TotalOrdenes
+	FROM Fact_Sales AS f
+	GROUP BY YEAR(f.Order_Date), MONTH(f.Order_Date), DATENAME(MONTH, f.Order_Date)
+)
 SELECT 
-    YEAR(f.Order_Date) AS Anio,
-    MONTH(f.Order_Date) AS NumMes,
-    DATENAME(MONTH, f.Order_Date) AS Mes,
-    FORMAT(SUM(f.Revenue), 'N2') AS IngresoTotal,
-    FORMAT(SUM(f.Profit), 'N2') AS MargenTotal,
-    COUNT(DISTINCT f.Order_ID) AS TotalOrdenes
-FROM Fact_Sales AS f
-GROUP BY YEAR(f.Order_Date), MONTH(f.Order_Date), DATENAME(MONTH, f.Order_Date)
-ORDER BY Anio ASC, NumMes ASC;
+	Anio,
+	NumMes,
+	Mes,
+	FORMAT(IngresoTotal, 'N2') as IngresoTotalMes,
+	FORMAT(MargenTotal, 'N2') as MargenTotalMes,
+	TotalOrdenes,
+	FORMAT( LAG(IngresoTotal, 1) OVER(ORDER BY Anio, NumMes) , 'N2') AS IngresoMesAnterior,
+	CAST(
+		(IngresoTotal -	LAG(IngresoTotal, 1) OVER(ORDER BY Anio, NumMes) ) * 100.0 /
+		LAG(IngresoTotal, 1) OVER(ORDER BY Anio, NumMes) 
+		AS DECIMAL(10,2)) AS [CrecimientoIngresoMesAnterior(%)]
+FROM VentasMensuales
+ORDER BY Anio ASC, NumMes ASC
 ```
 
 ![pregunta5_final](./Picture/pregunta5_final.png)
  
  **Insight:**
 
- - En 2023 los ingresos se mantuvieron estables durante los primeros 9 meses, alcanzando un punto más alto en Noviembre con $10.48M y cerrando el año con $9.36M.
- - En 2024 se ve un incremento generalizado en los ingresos, siendo Octubre ($14.09M) y Noviembre ($15.71M) los meses de mayores ventas. Sin embargo, diciembre registro una caída considerable con $10.53M.
- - Se pudo determinar por tanto una estacionalidad marcada en el último trimestre del año ya que se concentra la mayor cantidad de ventas de todo el año.
+ - Se pudo detectar una consistencia mes a mes entre ambos años, febrero tiene una caída similar en periodos del 2023 y 2024 con un -36.77% y -32.89% respectivamente.
+ - En la transición Mayo-Junio se muestran caídas leves pero repetidas entre ambos años, con un -3.37% y 3.31%, confirmando un ciclo estacional recurrente.
+ - Se pudo determinar una estacionalidad marcada en el último trimestre (Oct-Nov-Dic) ya que se concentra la mayor cantidad de ventas de todo el año.
  - Se pudo identificar al mes de Febrero como el mes más débil del año en cuanto a Ingresos, Margen y Ordenes.
- - Al realizar una comparación mes a mes entre 2023 y 2024, los crecimientos son mínimos o nulos y hasta en algunos casos (enero, julio, diciembre) se registraron caídas leves.
- - La empresa debería concentrar su presupuesto de inventario y logística en el cuarto trimestre del año (Oct-Nov-Dic), que representa aproximadamente el 35-40% del ingreso anual.
+  - La empresa debería concentrar su presupuesto de inventario y logística en el último trimestre del año (Oct-Nov-Dic), que representa aproximadamente más del 35% del ingreso anual.
  - También se debería construir campañas de reactivación comercial para febrero, puesto que es el punto más frágil de nuestra operación comercial anual y tiene un gran margen de mejora.
+
+### 6. Concentración del Ingreso por Estado
+
+#### ¿Que estados concentran el 80% del ingreso total de la empresa? ¿Vale la pena distribuir el esfuerzo comercial por igual entre los 47 estados?
+
+Se utilizó un CTE llamado `IngresoPorEstado` y sobre ese se aplicó otro CTE llamado `IngresoAcumulado` con las funciones de ventana:
+- SUM() OVER (ORDER BY ... DESC) para el cálculo del ingreso acumulado estado por estado de mayor a menor
+- SUM() OVER() para el cálculo total general de ingresos en cada fila.
+
+Con esa información se calculó el porcentaje de individual y acumualado de cada estado sobre el total.
+
+``` sql
+WITH IngresoPorEstado AS (
+	SELECT
+		g.State as Estado,
+		SUM(f.Revenue) as IngresoEstado
+	FROM Fact_Sales as f
+	INNER JOIN Dim_Geography as g on f.Geo_ID = g.Geo_ID
+	GROUP BY g.State
+),
+IngresoAcumulado AS (
+	SELECT 
+		Estado,
+		IngresoEstado,
+		SUM(IngresoEstado) OVER (ORDER BY IngresoEstado DESC) as IngresoAcumulado,
+		SUM(IngresoEstado) OVER() AS IngresoTotalGral
+	FROM IngresoPorEstado
+)
+SELECT
+	Estado,
+	FORMAT ( IngresoEstado, 'N2') AS IngresoEstado_,
+	CAST( ( IngresoEstado * 100.0 ) / ( IngresoTotalGral) AS DECIMAL(10,2) ) as PctIndividual,
+	FORMAT ( IngresoAcumulado, 'N2' ) AS IngresoAcumulado_,
+	CAST ( ( IngresoAcumulado * 100.0 ) / ( IngresoTotalGral) AS DECIMAL(10,2) ) as PctAcumulado,
+	FORMAT ( IngresoTotalGral, 'N2' ) AS IngresoTotalGral_
+FROM IngresoAcumulado
+ORDER BY IngresoEstado DESC;
+```
+
+![pregunta6_1](./Picture/pregunta6_1.png)
+![pregunta6_2](./Picture/pregunta6_2.png)
+
+**Insight:**
+
+- Los resultados confirman que el principio de Pareto del 80-20 (80% de las resultados(ingresos) provienen del 20% de causas (estados)) no se cumple en las operaciones de la empresa.
+- El porcentaje acumulado de ingresos alcanza el 81.77% en el estado de Indiana, que ocupa el puesto 32 de 47. Es decir, se necesita el 68% de los estados para alcanzar el 80% de los ingresos totales de $142.4M. Un indicador muy lejano al establecido por el principio.
+- California es el estado líder y aporta 4.75% del total, los 12 primeros estados aportan en un rango muy similar (3.04% a 4.75% de ingresos respeto del total).
+- La empresa debería descartar una estrategia de priorización comercial basada en geografía, puesto que no existe un grupo dominante de estados clave sobre el cual concentrar fuerzas comerciales. La operación esta distribuida homogéneamente a nivel nacional.
+- La empresa debería plantear criterios de priorización en otras dimensiones como producto y categoría, donde se encuentran más concentraciones de rentabilidad.
+
+### 7. Clientes Recurrentes vs. Compradores Únicos
+
+#### ¿Qué proporción de clientes ha realizado más de una compra, frente a los que solo compraron una vez?
+
+Se utilizó un CTE llamado `Clasificacion_Cliente` para segmentar a los clientes como recurrentes o únicos con las funciones COUNT, CASE WHEN.
+Luego se obtuvo el porcentaje de Clientes utilizando la funcion de ventana SUM() OVER().
+
+``` sql sql
+WITH Clasificacion_Cliente as (
+	SELECT
+		c.Customer_Name,
+		COUNT(DISTINCT f.Order_ID) AS Total_Compras,
+		CASE 
+			WHEN COUNT(DISTINCT f.Order_ID) > 1 Then 'Recurrente'
+			ELSE 'Unico'
+		END AS Tipo_Cliente
+	FROM Fact_Sales as f
+	INNER JOIN Dim_Customer as c ON c.Customer_ID = f.Customer_ID
+	GROUP BY c.Customer_Name
+)
+SELECT 
+	Tipo_Cliente,
+	COUNT(1) AS CantidadClientes,
+	SUM(COUNT(1)) OVER() AS TotalClientes, 
+	CAST(
+		COUNT(1) * 100.0 / 
+		SUM(COUNT(1)) OVER() 
+		AS decimal(10,2) ) AS PctClientes
+FROM Clasificacion_Cliente
+GROUP BY Tipo_Cliente
+ORDER BY CantidadClientes DESC;
+```
+
+![pregunta7](./Picture/pregunta7.png)
+
+
+**Insight:**
+- Los resultados muestran que el 72% de los clientes son compradores únicos en el periodo 2023-2024, mientras que 28.01% de los clientes volvieron a comprar al menos una segunda vez. Esto indica que el negocio depende bastante de la adquisición continua de nuevos clientes lo que representa un riesgo comercial por falta de fidelización.
+-  Se deben reforzar las estrategias de retención y fidelización de clientes, seguimientos post-compra y campañas de compras redirigidas antes de seguir enfocando las inversiones en adquisición de nuevos clientes.
+
+### 8. Tasa de Crecimiento Mensual Por Categoría
+
+Se halló la tendencia de crecimiento por Categoría utilizando dos CTEs encadenados, `VentasMensualesCategoria`agrupa los ingresoss por categoria, año y mes. 
+
+El segundo CTE `CrecimientoMensual` hace uso de la función de ventana LAG para calcular el ingreso del mes anterior y la tasa de crecimiento porcentual entre mes y mes. 
+
+Finalmente, se calcula el promedio de crecimiento porcentual de cada categoría y se hace un conteo de meses en crecimiento y en caida
+```sql
+WITH VentasMensualesCategoria as(
+	SELECT 
+		p.Category,
+		YEAR(f.Order_Date) AS Anio,
+		MONTH(f.Order_Date) AS NumMes,
+		DATENAME(MONTH, f.Order_Date) AS Mes,
+		SUM(f.Revenue) AS IngresoTotal
+	FROM Fact_Sales AS f
+	INNER JOIN Dim_Product as p on p.Product_ID = f.Product_ID
+	GROUP BY p.Category, YEAR(f.Order_Date), MONTH(f.Order_Date), DATENAME(MONTH, f.Order_Date)
+),
+CrecimientoMensual as (
+SELECT 
+	Category, 
+	Anio,
+	NumMes,
+	Mes,
+	FORMAT(IngresoTotal, 'N2') as IngresoTotalMes,
+	FORMAT( LAG(IngresoTotal, 1) OVER(PARTITION BY Category ORDER BY Anio, NumMes) , 'N2') AS IngresoMesAnterior,
+	CAST(
+		(IngresoTotal -	LAG(IngresoTotal, 1) OVER(PARTITION BY Category ORDER BY Anio, NumMes) ) * 100.0 
+		/ LAG(IngresoTotal, 1) OVER(PARTITION BY Category  ORDER BY Anio, NumMes) 
+		AS DECIMAL(10,2)) AS Pct_Crecim_Mes_Anterior
+FROM VentasMensualesCategoria
+)
+SELECT
+	Category,
+	ROUND( AVG(Pct_Crecim_Mes_Anterior), 2) AS CrecimientoPromMensual,
+	SUM(CASE
+			WHEN Pct_Crecim_Mes_Anterior > 0 THEN 1 
+			ELSE 0
+		END) AS CntMesEnCrecimiento,
+	SUM(CASE
+			WHEN Pct_Crecim_Mes_Anterior < 0 THEN 1 
+			ELSE 0
+		END) AS CntMesEnCaida
+FROM CrecimientoMensual
+WHERE Pct_Crecim_Mes_Anterior is NOT NULL
+GROUP BY Category
+ORDER BY CrecimientoPromMensual DESC
+```
+
+![pregunta8](./Picture/pregunta8.png)
+
+**Insight:**
+
+- Home & Furniture es la categoría mas irregular pues tiene el menor crecimiento promedio (9.37%), 13 meses en crecimiento y 10 en caida.
+- El promedio de crecimiento de las 4 categorías que se sitúa entre 9.3% y 10% no debe interpretrase como un crecimiento sostenido pues gran parte de esta cifra se debe a la temporada alta  de octubre, noviembre y diciembre.
+- Las categorías de Clothing & Apparel y Electronics muestran la mejor tasa de crecimiento con 9.87% y 9.82%. La empresa debería seguir impulsando esa estabilidad y evaluar si es aplicable a las categorías de menor crecimiento.
+
+
+### 9. Matriz de Desempeño Categoría-Región
+
+#### ¿Qué combinaciones de categoría y región presentan el mejor y el peor desempeño conjunto de ingreso y margen?
+
+Se halló el desempeño cruzado de cada combinación categoría y región agrupando Sales, Product y Geograpgy con las funciones SUM para Ingresos y Margenes Totales. Se utilizó la funcion de ventana RANK () OVER(ORDER BY ... DESC) para obtener un ranking organizado de mejor a peor desempeño por margen.
+
+```sql
+SELECT
+	p.Category,
+	g.Region,
+	FORMAT(SUM(f.Revenue), 'N2') as IngresoTotal,
+	FORMAT(SUM(f.Profit), 'N2') as MargenTotal, 
+	CAST( SUM(f.Profit) * 100.0 /sum(f.Revenue) AS DECIMAL(10,2) ) AS PctMargen,
+	RANK() OVER(ORDER BY SUM(f.Profit) * 100.0 /sum(f.Revenue) DESC ) AS RankingMargen
+FROM Fact_Sales as f
+INNER JOIN Dim_Product AS p on p.Product_ID = f.Product_ID
+INNER JOIN Dim_Geography AS g on g.Geo_ID = f.Geo_ID
+GROUP BY p.Category, g.Region
+```
+
+![pregunta9](./Picture/pregunta9.png)
+
+**Insight:**
+
+- Se pudo evidenciar que el margen está determinado por la categoría y no por la geografía. Las 16 combinaciones se agrupan en 4 bloques perfectamente definidos por categoría (Accessories 33.9%-34.2%, Clothing & Apparel 32.5%-32.6%, Home & Furniture 23.4%-23.7%, Electronics 13.9%-14.1%)
+- En cuanto a la región que posee el menor margen de todas la cual es East, se evidencia que no se debe a que vende un mix de producto diferente a las demás regiones sino que tiene simplemente una mayor venta de Electronics en general con $22.67M.
+- La empresa debería impulsar sus esfuerzos comerciales en categorías de mayor margen como Accessories y Clothing & Apparel dentro de la región East, para que la participación relativa del del total de ventas de la región East suba.
